@@ -5,10 +5,10 @@ FIELD_WIDTH = 50    # ширина поля
 FIELD_HEIGHT = 15   # высота поля
 MAX_CHESTS = 3      # количество сундуков
 MAX_ATTEMPTS = 20   # количество попыток
+abc = '~`'
 
 # создаем новую карту
 def getNewMap() -> list:
-    abc = '~`'
     result = []
     for i in range(FIELD_HEIGHT):
         buf = [random.choice(abc) for j in range(FIELD_WIDTH)]
@@ -67,10 +67,40 @@ def radar(chests: list, coords: tuple) -> int:
     return ans
 
 # получаем ход пользователя
-def getUserMove() -> tuple:
-    pass
+def getUserMove(field: list) -> tuple:
+    while True:
+        s = input('Укажите координаты (номер строки и столбца через пробел): ').split()
+        if len(s) != 2:
+            print('Требуется ввести два числа')
+        elif not s[0].isdigit() or not s[1].isdigit():
+            print('Требуется ввести два числа')
+            continue
+        x, y = int(s[1]), int(s[0])
+        if not(0 <= x < FIELD_WIDTH and 0 <= y < FIELD_HEIGHT):
+            print('Координаты должны быть в пределах поля')
+            continue
+        if not field[y][x] in abc:
+            print('Этот ход уже был')
+            continue
+        return (x, y)
 
-t = getNewMap()
-printMap(t)
+print('Привет. Это игра "Охотник за сокровищами". На карте спрятаны сундуки с сокровищами. Вам нужно их отыскать с помощью радара. Вводите координаты точек на карте и узнавайте расстояние до ближайшего сундука. Удачи!')
+field = getNewMap()
 chests = hideChests()
-print(chests)
+for attempt in range(MAX_ATTEMPTS):
+    printMap(field)
+    print('Осталось сундуков:', len(chests))
+    print('Осталось попыток:', MAX_ATTEMPTS - attempt)
+    move = getUserMove(field)
+    x, y = move
+    dist = radar(chests, move)
+    if dist == 0:
+        print('Вы нашли сундук!')
+        chests.remove(move)
+        field[y][x] = '@'
+    elif dist < 10:
+        print('Расстояние до ближайшего сундука:', dist)
+        field[y][x] = str(dist)
+    else:
+        print('Ничего не найдено')
+        field[y][x] = 'x'
