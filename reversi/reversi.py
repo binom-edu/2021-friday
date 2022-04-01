@@ -1,6 +1,3 @@
-from subprocess import list2cmdline
-
-
 def getNewBoard() -> list:
     board = []
     for i in range(8):
@@ -17,6 +14,37 @@ def printBoard(board):
         print(8 - i, ' ', ' '.join(board[i]), ' ', 8 - i, sep='')
     print('  a b c d e f g h ')
 
+def selectUserTile() -> list:
+    computerTile, userTile = TILES
+    s = input(f'Вы играете за "{userTile}". Сменить (y/n)? ')
+    if s.lower().startswith('y'):
+        computerTile, userTile = userTile, computerTile
+    return [computerTile, userTile]
+
+def tilesToFlip(board: list, y: int, x: int, tile: str) -> list:
+    otherTile = TILES[(TILES.index(tile) + 1) % 2]
+    directions = [
+        [-1, 0],
+        [-1, 1],
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [1, -1],
+        [0, -1],
+        [-1, -1]
+    ]
+    ans = []
+    for d in directions:
+        di, dj = d
+        i, j = y, x
+        while True:
+            i += di
+            j += dj
+            if ...
+
+
+
 TILES = ['○', '●']
 board = getNewBoard()
 printBoard(board)
+computerTile, userTile = selectUserTile()
