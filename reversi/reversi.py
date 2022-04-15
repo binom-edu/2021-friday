@@ -1,3 +1,5 @@
+import random
+
 def getNewBoard() -> list:
     board = []
     for i in range(8):
@@ -86,7 +88,17 @@ def getUserMove(board, userTile):
         makeMove(board, i, j, userTile)
         return
 
+def getValidMoves(board: list, tile: str) -> list:
+    ans = []
+    for i in range(8):
+        for j in range(8):
+            if tilesToFlip(board, i, j, tile):
+                ans.append((i, j))
+    return ans
 
+def getComputerMove(board, computerTile):
+    i, j = random.choice(getValidMoves(board, computerTile))
+    makeMove(board, i, j, computerTile)
 
 TILES = ['○', '●']
 EMPTY = '⋅'
@@ -95,3 +107,6 @@ printBoard(board)
 computerTile, userTile = selectUserTile()
 getUserMove(board, userTile)
 printBoard(board)
+getComputerMove(board, computerTile)
+printBoard(board)
+# ДЗ. Сделать подсчет очков, игровой цикл, конец игры
