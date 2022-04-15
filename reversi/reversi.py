@@ -56,6 +56,12 @@ def tilesToFlip(board: list, y: int, x: int, tile: str) -> list:
             break
     return ans
 
+def makeMove(board: list, y: int, x: int, tile: str) -> None:
+    tiles = tilesToFlip(board, y, x, tile)
+    for i, j in tiles:
+        board[i][j] = tile
+    board[y][x] = tile
+
 def getUserMove(board, userTile):
     alf = 'abcdefgh'
     while True:
@@ -70,11 +76,16 @@ def getUserMove(board, userTile):
         if not s[1] in '12345678':
             print('Недопустимый ввод: требуется цифра 1-8')
             continue
-        i = int(s[1] - 1)
+        i = 8 - int(s[1])
         if board[i][j] != EMPTY:
             print('Клетка занята!')
             continue
-        # проверить, что ход допустимый (есть что переворачивать)
+        if len(tilesToFlip(board, i, j, userTile)) == 0:
+            print('Недопустимый ход: нет перевернутых фишек')
+            continue
+        makeMove(board, i, j, userTile)
+        return
+
 
 
 TILES = ['○', '●']
@@ -82,3 +93,5 @@ EMPTY = '⋅'
 board = getNewBoard()
 printBoard(board)
 computerTile, userTile = selectUserTile()
+getUserMove(board, userTile)
+printBoard(board)
