@@ -15,6 +15,9 @@ def printBoard(board):
     for i in range(8):
         print(8 - i, ' ', ' '.join(board[i]), ' ', 8 - i, sep='')
     print('  a b c d e f g h ')
+    score = getScore(board)
+    print(f'Игрок ({userTile}): {score["user"]}')
+    print(f'компьютер ({computerTile}): {score["computer"]}')
 
 def selectUserTile() -> list:
     computerTile, userTile = TILES
@@ -92,21 +95,36 @@ def getValidMoves(board: list, tile: str) -> list:
     ans = []
     for i in range(8):
         for j in range(8):
-            if tilesToFlip(board, i, j, tile):
+            if board[i][j] == EMPTY and tilesToFlip(board, i, j, tile):
                 ans.append((i, j))
     return ans
 
 def getComputerMove(board, computerTile):
     i, j = random.choice(getValidMoves(board, computerTile))
+    print('Ход компьютера: ', 'abcdefgh'[j], 8 - i, sep='')
     makeMove(board, i, j, computerTile)
+
+def getScore(board: list) -> dict:
+    ans = {'user': 0, 'computer': 0}
+    for i in range(8):
+        for j in range(8):
+            if board[i][j] == userTile:
+                ans['user'] += 1
+            elif board[i][j] == computerTile:
+                ans['computer'] += 1
+    return ans
 
 TILES = ['○', '●']
 EMPTY = '⋅'
 board = getNewBoard()
-printBoard(board)
 computerTile, userTile = selectUserTile()
-getUserMove(board, userTile)
 printBoard(board)
-getComputerMove(board, computerTile)
-printBoard(board)
+
+while len(getValidMoves(board, userTile)) != 0 or len(getValidMoves(board, computerTile)) != 0:
+    if len(getValidMoves(board, userTile)) != 0:
+        getUserMove(board, userTile)
+        printBoard(board)
+    if len(getValidMoves(board, computerTile)) != 0:
+        getComputerMove(board, computerTile)
+        printBoard(board)
 # ДЗ. Сделать подсчет очков, игровой цикл, конец игры
