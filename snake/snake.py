@@ -14,7 +14,7 @@ class Item(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.rect = self.image.get_rect()
-        self.rect.center = (x * SQUARE_SIZE, y * SQUARE_SIZE)
+        self.rect.topleft = (x * SQUARE_SIZE, y * SQUARE_SIZE)
         all_sprites.add(self)
 
 class Snake():
@@ -32,6 +32,16 @@ class Snake():
         }
     
     def update(self):
+        old_d = self.direction
+        k = pygame.key.get_pressed()
+        if k[pygame.K_UP] and old_d != 'D':
+            self.direction = 'U'
+        elif k[pygame.K_RIGHT] and old_d != 'L':
+            self.direction = 'R'
+        elif k[pygame.K_DOWN] and old_d != 'U':
+            self.direction = 'D'
+        elif k[pygame.K_LEFT] and old_d != 'R':
+            self.direction = 'L'
         d = self.dirs[self.direction]
         head = self.items[0]
         newHead = Item(head.x + d[0], head.y + d[1])
@@ -39,6 +49,14 @@ class Snake():
         tail = self.items.pop()
         tail.kill()
 
+class Food(pygame.sprite.Sprite):
+    def __init__(self):
+        self.image = pygame.surface.Surface((SQUARE_SIZE, SQUARE_SIZE))
+        self.image.fill((255, 255, 0))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (random.randrange(0, WIDTH) * SQUARE_SIZE, random.randrange(0, HEIGHT) * SQUARE_SIZE)
+        all_sprites.add(self)
+        foods.add(self)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE), 0, 32)
@@ -46,9 +64,10 @@ pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
+foods = pygame.sprite.Group()
 
 snake = Snake(5)
-
+food = Food()
 gameOn = True
 
 while gameOn:
@@ -67,4 +86,4 @@ while gameOn:
 
 pygame.quit()
 # домашка
-# попробовать разные направления движения
+# сделать так, чтобы еда появлялась
