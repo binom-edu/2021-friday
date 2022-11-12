@@ -36,6 +36,8 @@ class Snake():
         head = self.items[0]
         newHead = Item(head.x + d[0], head.y + d[1])
         self.items.insert(0, newHead)
+        tail = self.items.pop()
+        tail.kill()
 
 
 pygame.init()
@@ -59,6 +61,7 @@ while gameOn:
     all_sprites.update()
     snake.update()
     # Рендеринг
+    screen.fill((0, 0, 0))
     all_sprites.draw(screen)
     pygame.display.flip()
 
