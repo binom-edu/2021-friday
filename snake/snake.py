@@ -5,6 +5,7 @@ WIDTH = 50
 HEIGHT = 50
 SNAKE_SIZE = 3
 FPS = 10
+font_name = pygame.font.match_font('arial')
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, x = WIDTH // 2, y = HEIGHT // 2):
@@ -68,6 +69,29 @@ def eat(food):
     food.kill()
     Food()
 
+def showGoScreen():
+    screen.fill((30, 30, 30))
+    draw_text(screen, 'Нажмите любую клавишу', 24, WIDTH // 2 * SQUARE_SIZE, HEIGHT // 2 * SQUARE_SIZE)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYUP:
+                waiting = False
+
+
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, (255, 255, 255))
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
+
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE), 0, 32)
 pygame.display.set_caption('Змейка')
@@ -79,6 +103,8 @@ foods = pygame.sprite.Group()
 snake = Snake(5)
 food = Food()
 gameOn = True
+
+showGoScreen()
 
 while gameOn:
     clock.tick(FPS)
@@ -96,4 +122,4 @@ while gameOn:
 
 pygame.quit()
 # домашка
-# сделать так, чтобы еда появлялась
+# Добавить параметр gameover для функции showGoScreen. При значении True должен дополнительно выводиться текст Игра окончена.
