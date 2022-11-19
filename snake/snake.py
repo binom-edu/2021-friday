@@ -46,17 +46,27 @@ class Snake():
         head = self.items[0]
         newHead = Item(head.x + d[0], head.y + d[1])
         self.items.insert(0, newHead)
-        tail = self.items.pop()
-        tail.kill()
+        collide = pygame.sprite.spritecollide(newHead, foods, False)
+        if collide:
+            for food in collide:
+                eat(food)
+        else:
+            tail = self.items.pop()
+            tail.kill()
 
 class Food(pygame.sprite.Sprite):
     def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
         self.image = pygame.surface.Surface((SQUARE_SIZE, SQUARE_SIZE))
         self.image.fill((255, 255, 0))
         self.rect = self.image.get_rect()
         self.rect.topleft = (random.randrange(0, WIDTH) * SQUARE_SIZE, random.randrange(0, HEIGHT) * SQUARE_SIZE)
         all_sprites.add(self)
         foods.add(self)
+
+def eat(food):
+    food.kill()
+    Food()
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE), 0, 32)
