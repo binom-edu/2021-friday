@@ -33,6 +33,7 @@ class Snake():
         }
     
     def update(self):
+        global gameover
         old_d = self.direction
         k = pygame.key.get_pressed()
         if k[pygame.K_UP] and old_d != 'D':
@@ -54,6 +55,11 @@ class Snake():
         else:
             tail = self.items.pop()
             tail.kill()
+        # проверяем, не столкнулась ли голова с хвостом
+        collide = pygame.sprite.spritecollide(newHead, snake_items, False)
+        if collide:
+            gameover = True
+        snake_items.add(newHead)
 
 class Food(pygame.sprite.Sprite):
     def __init__(self):
@@ -69,8 +75,10 @@ def eat(food):
     food.kill()
     Food()
 
-def showGoScreen():
+def showGoScreen(gameover=False):
     screen.fill((30, 30, 30))
+    if gameover:
+        draw_text(screen, 'Игра окончена', 32, WIDTH // 2 * SQUARE_SIZE, 20 * SQUARE_SIZE)
     draw_text(screen, 'Нажмите любую клавишу', 24, WIDTH // 2 * SQUARE_SIZE, HEIGHT // 2 * SQUARE_SIZE)
     pygame.display.flip()
     waiting = True
@@ -99,16 +107,20 @@ clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
 foods = pygame.sprite.Group()
+snake_items = pygame.sprite.Group()
 
 snake = Snake(5)
 food = Food()
 gameOn = True
+gameover = False
 
 showGoScreen()
 
 while gameOn:
     clock.tick(FPS)
     # События
+    if gameover:
+        showGoScreen(gameover)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             gameOn = False
@@ -121,5 +133,3 @@ while gameOn:
     pygame.display.flip()
 
 pygame.quit()
-# домашка
-# Добавить параметр gameover для функции showGoScreen. При значении True должен дополнительно выводиться текст Игра окончена.
