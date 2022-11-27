@@ -79,7 +79,7 @@ def showGoScreen(gameover=False):
     screen.fill((30, 30, 30))
     if gameover:
         draw_text(screen, 'Игра окончена', 32, WIDTH // 2 * SQUARE_SIZE, 20 * SQUARE_SIZE)
-    draw_text(screen, 'Нажмите любую клавишу', 24, WIDTH // 2 * SQUARE_SIZE, HEIGHT // 2 * SQUARE_SIZE)
+    draw_text(screen, 'Нажмите ENTER, чтобы начать игру', 24, WIDTH // 2 * SQUARE_SIZE, HEIGHT // 2 * SQUARE_SIZE)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -88,8 +88,8 @@ def showGoScreen(gameover=False):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            if event.type == pygame.KEYUP:
-                waiting = False
+        if pygame.key.get_pressed()[pygame.K_RETURN]:
+            waiting = False
 
 
 def draw_text(surf, text, size, x, y):
@@ -117,10 +117,17 @@ gameover = False
 showGoScreen()
 
 while gameOn:
-    clock.tick(FPS)
-    # События
     if gameover:
         showGoScreen(gameover)
+        gameover = False
+        all_sprites = pygame.sprite.Group()
+        foods = pygame.sprite.Group()
+        snake_items = pygame.sprite.Group()
+        snake = Snake(5)
+        food = Food()
+    
+    clock.tick(FPS)
+    # События
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             gameOn = False
