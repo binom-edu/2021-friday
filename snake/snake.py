@@ -1,4 +1,9 @@
+# Звуки: https://opengameart.org/node/132358
+# Спрайты и звуки: https://opengameart.org/content/snake-sprites-sound
+# Фоновая музыка: https://opengameart.org/content/bossa-nova
+
 import pygame, random
+from os import path
 
 SQUARE_SIZE = 10
 WIDTH = 50
@@ -48,6 +53,7 @@ class Snake():
         head = self.items[0]
         newHead = Item(head.x + d[0], head.y + d[1])
         self.items.insert(0, newHead)
+        # проверяем еду
         collide = pygame.sprite.spritecollide(newHead, foods, False)
         if collide:
             for food in collide:
@@ -58,6 +64,10 @@ class Snake():
         # проверяем, не столкнулась ли голова с хвостом
         collide = pygame.sprite.spritecollide(newHead, snake_items, False)
         if collide:
+            gameover = True
+        # проверяем выход за границы поля
+        if newHead.x < 0 or newHead.x == WIDTH or\
+           newHead.y < 0 or newHead.y == HEIGHT:
             gameover = True
         snake_items.add(newHead)
 
@@ -74,6 +84,7 @@ class Food(pygame.sprite.Sprite):
 def eat(food):
     food.kill()
     Food()
+    eat_sound.play()
 
 def showGoScreen(gameover=False):
     screen.fill((30, 30, 30))
@@ -101,9 +112,15 @@ def draw_text(surf, text, size, x, y):
 
 
 pygame.init()
+pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE), 0, 32)
 pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
+sound_dir = path.join(path.dirname(__file__), 'sounds')
+eat_sound = pygame.mixer.Sound(path.join(sound_dir, 'apple_bite.ogg'))
+pygame.mixer.music.load(path.join(sound_dir, 'bgm.mp3'))
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
 
 all_sprites = pygame.sprite.Group()
 foods = pygame.sprite.Group()
