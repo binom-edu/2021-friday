@@ -10,6 +10,7 @@ WIDTH = 50
 HEIGHT = 50
 SNAKE_SIZE = 3
 FPS = 10
+SCORE_FIELD_HEIGTH = 2
 font_name = pygame.font.match_font('arial')
 
 class Item(pygame.sprite.Sprite):
@@ -36,6 +37,7 @@ class Snake():
             'D': [0, 1],
             'L': [-1, 0]
         }
+        self.score = 0
     
     def update(self):
         global gameover
@@ -70,6 +72,7 @@ class Snake():
            newHead.y < 0 or newHead.y == HEIGHT:
             gameover = True
         snake_items.add(newHead)
+        self.score += 1
 
 class Food(pygame.sprite.Sprite):
     def __init__(self):
@@ -110,17 +113,22 @@ def draw_text(surf, text, size, x, y):
     text_rect.midtop = (x, y)
     surf.blit(text_surface, text_rect)
 
+def draw_score(surf, score):
+    outline_rect = pygame.Rect(5, 5, (WIDTH - 1) * SQUARE_SIZE, SCORE_FIELD_HEIGTH * SQUARE_SIZE - 5)
+    pygame.draw.rect(surf, (200, 200, 200), outline_rect, 2)
+    draw_text(surf, f'Score: {score}', 10, 50, 5)
 
 pygame.init()
 pygame.mixer.init()
-screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE), 0, 32)
+screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE + SCORE_FIELD_HEIGTH * SQUARE_SIZE), 0, 32)
 pygame.display.set_caption('Змейка')
 clock = pygame.time.Clock()
 sound_dir = path.join(path.dirname(__file__), 'sounds')
 eat_sound = pygame.mixer.Sound(path.join(sound_dir, 'apple_bite.ogg'))
+go_sound = pygame.mixer.Sound(path.join(sound_dir, 'die.ogg'))
 pygame.mixer.music.load(path.join(sound_dir, 'bgm.mp3'))
 pygame.mixer.music.set_volume(0.4)
-pygame.mixer.music.play(-1)
+
 
 all_sprites = pygame.sprite.Group()
 foods = pygame.sprite.Group()
@@ -132,10 +140,14 @@ gameOn = True
 gameover = False
 
 showGoScreen()
+pygame.mixer.music.play(-1)
 
 while gameOn:
     if gameover:
+        go_sound.play()
+        pygame.mixer.music.stop()
         showGoScreen(gameover)
+        pygame.mixer.music.play(-1)
         gameover = False
         all_sprites = pygame.sprite.Group()
         foods = pygame.sprite.Group()
@@ -151,9 +163,11 @@ while gameOn:
     # Обновление
     all_sprites.update()
     snake.update()
+    
     # Рендеринг
     screen.fill((0, 0, 0))
     all_sprites.draw(screen)
+    draw_score(screen, snake.score)
     pygame.display.flip()
 
 pygame.quit()
