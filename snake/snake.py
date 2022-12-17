@@ -11,6 +11,7 @@ HEIGHT = 50
 SNAKE_SIZE = 3
 FPS = 10
 SCORE_FIELD_HEIGTH = 2
+SCORE_FOR_FOOD = 200
 font_name = pygame.font.match_font('arial')
 
 class Item(pygame.sprite.Sprite):
@@ -60,6 +61,7 @@ class Snake():
         if collide:
             for food in collide:
                 eat(food)
+                self.score += SCORE_FOR_FOOD
         else:
             tail = self.items.pop()
             tail.kill()
@@ -105,7 +107,6 @@ def showGoScreen(gameover=False):
         if pygame.key.get_pressed()[pygame.K_RETURN]:
             waiting = False
 
-
 def draw_text(surf, text, size, x, y):
     font = pygame.font.Font(font_name, size)
     text_surface = font.render(text, True, (255, 255, 255))
@@ -122,6 +123,8 @@ pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE + SCORE_FIELD_HEIGTH * SQUARE_SIZE), 0, 32)
 pygame.display.set_caption('Змейка')
+status_field = pygame.Surface((WIDTH * SQUARE_SIZE, SCORE_FIELD_HEIGTH * SQUARE_SIZE))
+main_field = pygame.Surface((WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE))
 clock = pygame.time.Clock()
 sound_dir = path.join(path.dirname(__file__), 'sounds')
 eat_sound = pygame.mixer.Sound(path.join(sound_dir, 'apple_bite.ogg'))
@@ -165,9 +168,12 @@ while gameOn:
     snake.update()
     
     # Рендеринг
-    screen.fill((0, 0, 0))
-    all_sprites.draw(screen)
-    draw_score(screen, snake.score)
+    main_field.fill((0, 0, 0))
+    status_field.fill((100, 100, 100))
+    draw_score(status_field, snake.score)
+    screen.blit(status_field, (0, 0))
+    all_sprites.draw(main_field)
+    screen.blit(main_field, (0, SCORE_FIELD_HEIGTH * SQUARE_SIZE))
     pygame.display.flip()
 
 pygame.quit()
