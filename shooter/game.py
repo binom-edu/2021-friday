@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         if now - self.last_shoot > self.shoot_delay:
             bullet = Bullet(self.rect.centerx, self.rect.top)
             all_sprites.add(bullet)
+            bullets.add(bullet)
             bullet_snd.play()
             self.last_shoot = now
 
@@ -48,21 +49,39 @@ class Bullet(pygame.sprite.Sprite):
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = random.choice(meteor_imgs)
+        self.image_orig = random.choice(meteor_imgs)
+        self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(0, WIDTH - self.rect.width)
         self.rect.y = random.randrange(-150, 100)
         self.speedy = random.randrange(1, 10)
         self.speedx = random.randint(-3, 3)
+        self.rot = 0
+        self.rot_speed = random.randint(-10, 10)
+        self.last_update = pygame.time.get_ticks()
         all_sprites.add(self)
+        mobs.add(self)
 
     def update(self):
+        self.rotate()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if self.rect.top > HEIGHT + 20:
+        if self.rect.top > HEIGHT + 20 or self.rect.right < 0 or self.rect.left > WIDTH:
             self.rect.x = random.randrange(0, WIDTH - self.rect.width)
             self.rect.y = random.randrange(-150, 100)
             self.speedy = random.randrange(1, 10)
+            self.speedx = random.randint(-3, 3)
+    
+    def rotate(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > 50:
+            self.last_update = now
+            self.rot = (self.rot + self.rot_speed) % 360
+            new_image = pygame.transform.rotate(self.image_orig, self.rot)
+            old_center = self.rect.center
+            self.image = new_image
+            self.rect = self.image.get_rect()
+            self.rect.center = old_center
 
 WIDTH = 400
 HEIGHT = 600
@@ -87,6 +106,8 @@ pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 all_sprites = pygame.sprite.Group()
+mobs = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
 player = Player()
 all_sprites.add(player)
 for i in range(8):
@@ -101,6 +122,11 @@ while game_on:
             game_on = False
     # обновление
     all_sprites.update()
+
+    # встреча пули и метеора
+    hits = pygame.sprite.groupcollide(mobs, bullets, True, True)
+    for hit in hits:
+        Mob()
     # рендеринг
     screen.fill((0, 0, 0))
     all_sprites.draw(screen)
