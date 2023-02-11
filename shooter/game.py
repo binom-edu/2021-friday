@@ -52,6 +52,7 @@ class Mob(pygame.sprite.Sprite):
         self.image_orig = random.choice(meteor_imgs)
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
+        self.radius = int(self.rect.width * 0.65 / 2)
         self.rect.x = random.randrange(0, WIDTH - self.rect.width)
         self.rect.y = random.randrange(-150, 100)
         self.speedy = random.randrange(1, 10)
@@ -104,6 +105,17 @@ class Explosion(pygame.sprite.Sprite):
             else:
                 self.image = explosion_anim[self.size][self.frame]
 
+def show_go_screen():
+    screen.blit(background, background_rect)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                waiting = False
 
 WIDTH = 400
 HEIGHT = 600
@@ -118,6 +130,8 @@ img_dir = os.path.join(os.path.dirname(__file__), 'img')
 snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
 player_img = pygame.image.load(os.path.join(img_dir, 'playerShip.png')).convert_alpha()
 bullet_img = pygame.image.load(os.path.join(img_dir, 'laserBlue16.png')).convert_alpha()
+background = pygame.image.load(os.path.join(img_dir, 'starfield.png')).convert()
+background_rect = background.get_rect()
 meteor_imgs = []
 meteors_list = os.listdir(os.path.join(img_dir, 'Meteors'))
 for img in meteors_list:
@@ -135,20 +149,27 @@ for i in range(9):
     explosion_anim['player'].append(img)
 
 bullet_snd = pygame.mixer.Sound(os.path.join(snd_dir, 'sfx_laser2.ogg'))
+expl_snd = []
+for snd in ['expl3.wav', 'expl6.wav']:
+    expl_snd.append(pygame.mixer.Sound(os.path.join(snd_dir, snd)))
 pygame.mixer.music.load(os.path.join(snd_dir, 'bgmusic.mp3'))
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
-all_sprites = pygame.sprite.Group()
-mobs = pygame.sprite.Group()
-bullets = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
-for i in range(8):
-    m = Mob()
-
 game_on = True
+game_over = True
 while game_on:
+    if game_over:
+        show_go_screen()
+        game_over = False
+        all_sprites = pygame.sprite.Group()
+        mobs = pygame.sprite.Group()
+        bullets = pygame.sprite.Group()
+        player = Player()
+        all_sprites.add(player)
+        for i in range(8):
+            m = Mob()
+
     clock.tick(FPS)
     # события
     for event in pygame.event.get():
@@ -160,9 +181,16 @@ while game_on:
     # встреча пули и метеора
     hits = pygame.sprite.groupcollide(mobs, bullets, True, True)
     for hit in hits:
+        random.choice(expl_snd).play()
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
         Mob()
+    
+    # встреча игрока и метеора
+    hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
+    if hits:
+        game_over = True
+
     # рендеринг
     screen.fill((0, 0, 0))
     all_sprites.draw(screen)
