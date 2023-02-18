@@ -7,6 +7,7 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(player_img, (50, 38))
         self.rect = self.image.get_rect()
+        self.radius = int(self.rect.width * 0.85 / 2)
         self.rect.centerx = WIDTH / 2
         self.rect.bottom = HEIGHT - 20
         self.shoot_delay = 1000
@@ -107,6 +108,8 @@ class Explosion(pygame.sprite.Sprite):
 
 def show_go_screen():
     screen.blit(background, background_rect)
+    draw_text('Используйте стрелки для перемещения, пробел для стрельбы', screen, WIDTH / 2, HEIGHT / 2, 12)
+    draw_text('Для начала нажмите любую клавишу', screen, WIDTH / 2, HEIGHT * 3 / 5, 18)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -114,8 +117,16 @@ def show_go_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                exit(0)
             if event.type == pygame.KEYUP:
                 waiting = False
+
+def draw_text(text, surf, x, y, size):
+    font = pygame.font.Font(font_name, size)
+    font_surf = font.render(text, True, (255, 255, 255))
+    text_rect = font_surf.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(font_surf, text_rect)
 
 WIDTH = 400
 HEIGHT = 600
@@ -156,11 +167,14 @@ pygame.mixer.music.load(os.path.join(snd_dir, 'bgmusic.mp3'))
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
+font_name = pygame.font.match_font('arial')
+
 game_on = True
 game_over = True
 while game_on:
     if game_over:
         show_go_screen()
+        score = 0
         game_over = False
         all_sprites = pygame.sprite.Group()
         mobs = pygame.sprite.Group()
@@ -181,6 +195,7 @@ while game_on:
     # встреча пули и метеора
     hits = pygame.sprite.groupcollide(mobs, bullets, True, True)
     for hit in hits:
+        score += 40 - hit.radius
         random.choice(expl_snd).play()
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
@@ -192,7 +207,8 @@ while game_on:
         game_over = True
 
     # рендеринг
-    screen.fill((0, 0, 0))
+    screen.blit(background, background_rect)
     all_sprites.draw(screen)
+    draw_text(str(score), screen, WIDTH / 2, 10, 18)
     pygame.display.flip()
 pygame.quit()
