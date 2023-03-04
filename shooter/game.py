@@ -35,6 +35,9 @@ class Player(pygame.sprite.Sprite):
             bullet_snd.play()
             self.last_shoot = now
 
+    def hide(self):
+        self.rect.center = (WIDTH / 2, HEIGHT + 300)
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -222,7 +225,18 @@ while game_on:
     
     # встреча игрока и метеора
     hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
-    if hits:
+    for hit in hits:
+        player.hp -= hit.radius
+        expl = Explosion(hit.rect.center, 'sm')
+        all_sprites.add(expl)
+        Mob()
+        if player.hp <= 0:
+            player_expl = Explosion(player.rect.center, 'player')
+            all_sprites.add(player_expl)
+            player.hide()
+            player.hp = 0
+
+    if player.hp == 0 and not player_expl.alive():
         game_over = True
 
     # рендеринг
