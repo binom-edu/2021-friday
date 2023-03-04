@@ -12,6 +12,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottom = HEIGHT - 20
         self.shoot_delay = 1000
         self.last_shoot = pygame.time.get_ticks()
+        self.hp = 100
     def update(self):
         keystate = pygame.key.get_pressed()
         if keystate[pygame.K_LEFT]:
@@ -107,9 +108,17 @@ class Explosion(pygame.sprite.Sprite):
                 self.image = explosion_anim[self.size][self.frame]
 
 def show_go_screen():
+    with open('highscore') as fin:
+        highscore = int(fin.readline())
+    if score > highscore:
+        highscore = score
+        with open('highscore', 'w') as fout:
+            print(highscore, file=fout)
     screen.blit(background, background_rect)
     draw_text('Используйте стрелки для перемещения, пробел для стрельбы', screen, WIDTH / 2, HEIGHT / 2, 12)
     draw_text('Для начала нажмите любую клавишу', screen, WIDTH / 2, HEIGHT * 3 / 5, 18)
+    draw_text('Очки: ' + str(score), screen, WIDTH / 2, 50, 18)
+    draw_text('Рекорд: ' + str(highscore), screen, WIDTH / 2, 74, 18)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -127,6 +136,15 @@ def draw_text(text, surf, x, y, size):
     text_rect = font_surf.get_rect()
     text_rect.midtop = (x, y)
     surf.blit(font_surf, text_rect)
+
+def draw_hp(surf, x, y, hp):
+    BAR_LENGTH = 100
+    BAR_HEIGHT = 10
+    fill_length = hp * BAR_LENGTH / 100
+    outlined_rect = pygame.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+    filled_rect = pygame.Rect(x, y, fill_length, BAR_HEIGHT)
+    pygame.draw.rect(surf, (0, 255, 0), filled_rect)
+    pygame.draw.rect(surf, (255, 255, 255), outlined_rect, 2)
 
 WIDTH = 400
 HEIGHT = 600
@@ -169,6 +187,7 @@ pygame.mixer.music.play(-1)
 
 font_name = pygame.font.match_font('arial')
 
+score = 0
 game_on = True
 game_over = True
 while game_on:
@@ -210,5 +229,6 @@ while game_on:
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
     draw_text(str(score), screen, WIDTH / 2, 10, 18)
+    draw_hp(screen, 5, 5, player.hp)
     pygame.display.flip()
 pygame.quit()
