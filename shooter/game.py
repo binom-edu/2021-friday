@@ -110,6 +110,13 @@ class Explosion(pygame.sprite.Sprite):
             else:
                 self.image = explosion_anim[self.size][self.frame]
 
+class Powerup(pygame.sprite.Sprite):
+    def __init__(self, center):
+        pygame.sprite.Sprite.__init__(self)
+        self.type = random.choice(['hp', 'shield', 'doublegun'])
+        self.image = powerup_images[self.type]
+
+
 def show_go_screen():
     with open('highscore') as fin:
         highscore = int(fin.readline())
@@ -179,11 +186,19 @@ for i in range(9):
     filename = f'sonicExplosion0{i}.png'
     img = pygame.image.load(os.path.join(img_dir, 'player_expl', filename)).convert_alpha()
     explosion_anim['player'].append(img)
+powerup_images = {
+    'hp': pygame.image.load(os.path.join(img_dir, 'powerups', 'pill_yellow.png')).convert_alpha(),
+    'shield': pygame.image.load(os.path.join(img_dir, 'powerups', 'shield_gold.png')).convert_alpha(),
+    'doublegun': pygame.image.load(os.path.join(img_dir, 'powerups', 'bolt_gold.png')).convert_alpha()
+
+}
+
 
 bullet_snd = pygame.mixer.Sound(os.path.join(snd_dir, 'sfx_laser2.ogg'))
 expl_snd = []
 for snd in ['expl3.wav', 'expl6.wav']:
     expl_snd.append(pygame.mixer.Sound(os.path.join(snd_dir, snd)))
+player_expl_snd = pygame.mixer.Sound(os.path.join(snd_dir, 'rumble1.ogg'))
 pygame.mixer.music.load(os.path.join(snd_dir, 'bgmusic.mp3'))
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
@@ -235,6 +250,7 @@ while game_on:
             all_sprites.add(player_expl)
             player.hide()
             player.hp = 0
+            player_expl_snd.play()
 
     if player.hp == 0 and not player_expl.alive():
         game_over = True
