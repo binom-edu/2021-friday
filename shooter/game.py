@@ -115,7 +115,16 @@ class Powerup(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.type = random.choice(['hp', 'shield', 'doublegun'])
         self.image = powerup_images[self.type]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.speed = 2
+        all_sprites.add(self)
+        powerups.add(self)
 
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.top > HEIGHT:
+            self.kill()
 
 def show_go_screen():
     with open('highscore') as fin:
@@ -216,6 +225,7 @@ while game_on:
         all_sprites = pygame.sprite.Group()
         mobs = pygame.sprite.Group()
         bullets = pygame.sprite.Group()
+        powerups = pygame.sprite.Group()
         player = Player()
         all_sprites.add(player)
         for i in range(8):
@@ -236,6 +246,7 @@ while game_on:
         random.choice(expl_snd).play()
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
+        Powerup(hit.rect.center)
         Mob()
     
     # встреча игрока и метеора
@@ -254,6 +265,13 @@ while game_on:
 
     if player.hp == 0 and not player_expl.alive():
         game_over = True
+
+    # столкновение корабля и улучшений
+    hits = pygame.sprite.spritecollide(player, powerups, True)
+    for hit in hits:
+        if hit.type == 'hp':
+            pass
+            # домашка тут
 
     # рендеринг
     screen.blit(background, background_rect)
