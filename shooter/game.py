@@ -13,6 +13,10 @@ class Player(pygame.sprite.Sprite):
         self.shoot_delay = 1000
         self.last_shoot = pygame.time.get_ticks()
         self.hp = 100
+        self.power = 1
+        self.power_time = pygame.time.get_ticks()
+
+
     def update(self):
         keystate = pygame.key.get_pressed()
         if keystate[pygame.K_LEFT]:
@@ -29,11 +33,30 @@ class Player(pygame.sprite.Sprite):
     def shoot(self):
         now = pygame.time.get_ticks()
         if now - self.last_shoot > self.shoot_delay:
-            bullet = Bullet(self.rect.centerx, self.rect.top)
-            all_sprites.add(bullet)
-            bullets.add(bullet)
-            bullet_snd.play()
             self.last_shoot = now
+            if self.power == 1:
+                bullet = Bullet(self.rect.centerx, self.rect.top)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+                bullet_snd.play()
+            elif self.power > 1:
+                bullet1 = Bullet(self.rect.left, self.rect.top)
+                bullet2 = Bullet(self.rect.right, self.rect.top)
+                all_sprites.add(bullet1)
+                bullets.add(bullet1)
+                all_sprites.add(bullet2)
+                bullets.add(bullet2)
+                bullet_snd.play()
+                if now - self.power_time > POWERUP_TIME:
+                    self.powerdown()
+
+    def powerup(self):
+        self.power += 1
+        self.power_time = pygame.time.get_ticks()
+
+    def powerdown(self):
+        self.power -= 1
+        self.power_time = pygame.time.get_ticks()
 
     def hide(self):
         self.rect.center = (WIDTH / 2, HEIGHT + 300)
@@ -168,6 +191,7 @@ def draw_hp(surf, x, y, hp):
 WIDTH = 400
 HEIGHT = 600
 FPS = 60
+POWERUP_TIME = 10000
 
 pygame.init()
 pygame.mixer.init()
@@ -262,6 +286,8 @@ while game_on:
             player.hide()
             player.hp = 0
             player_expl_snd.play()
+        else:
+            random.choice(expl_snd).play()
 
     if player.hp == 0 and not player_expl.alive():
         game_over = True
@@ -270,8 +296,11 @@ while game_on:
     hits = pygame.sprite.spritecollide(player, powerups, True)
     for hit in hits:
         if hit.type == 'hp':
-            pass
-            # домашка тут
+            player.hp += random.randint(10, 30)
+            if player.hp > 100:
+                player.hp = 100
+        elif hit.type == 'doublegun':
+            player.powerup()
 
     # рендеринг
     screen.blit(background, background_rect)
