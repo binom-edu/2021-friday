@@ -191,7 +191,7 @@ def draw_hp(surf, x, y, hp):
 WIDTH = 400
 HEIGHT = 600
 FPS = 60
-POWERUP_TIME = 10000
+POWERUP_TIME = 3000
 
 pygame.init()
 pygame.mixer.init()
@@ -270,7 +270,8 @@ while game_on:
         random.choice(expl_snd).play()
         expl = Explosion(hit.rect.center, 'lg')
         all_sprites.add(expl)
-        Powerup(hit.rect.center)
+        if random.random() > 0.92:
+            Powerup(hit.rect.center)
         Mob()
     
     # встреча игрока и метеора
