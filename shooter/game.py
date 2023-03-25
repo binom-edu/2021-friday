@@ -8,13 +8,15 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(player_img, (50, 38))
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width * 0.85 / 2)
-        self.rect.centerx = WIDTH / 2
-        self.rect.bottom = HEIGHT - 20
+        self.rect.centerx = settings['WIDTH'] / 2
+        self.rect.bottom = settings['HEIGHT'] - 20
         self.shoot_delay = 1000
         self.last_shoot = pygame.time.get_ticks()
         self.hp = 100
         self.power = 1
         self.power_time = pygame.time.get_ticks()
+        self.shields = 0
+        self.shieldup_time = pygame.time.get_ticks()
 
 
     def update(self):
@@ -27,8 +29,10 @@ class Player(pygame.sprite.Sprite):
             self.shoot()
         if self.rect.left < 0:
             self.rect.left = 0
-        if self.rect.right > WIDTH:
-            self.rect.right = WIDTH
+        if self.rect.right > settings['WIDTH']:
+            self.rect.right = settings['WIDTH']
+        if self.shields > 0 and pygame.time.get_ticks() - self.shieldup_time > settings['SHIELDUP_TIME']:
+            self.shielddown()
 
     def shoot(self):
         now = pygame.time.get_ticks()
@@ -47,7 +51,7 @@ class Player(pygame.sprite.Sprite):
                 all_sprites.add(bullet2)
                 bullets.add(bullet2)
                 bullet_snd.play()
-                if now - self.power_time > POWERUP_TIME:
+                if now - self.power_time > settings['POWERUP_TIME']:
                     self.powerdown()
 
     def powerup(self):
@@ -58,8 +62,19 @@ class Player(pygame.sprite.Sprite):
         self.power -= 1
         self.power_time = pygame.time.get_ticks()
 
+    def shieldup(self):
+        self.image = pygame.transform.scale(player_img_shield, (50, 38))
+        self.shields += 1
+        self.shieldup_time = pygame.time.get_ticks()
+
+    def shielddown(self):
+        self.shields -= 1
+        self.shieldup_time = pygame.time.get_ticks()
+        if self.shields == 0:
+            self.image = pygame.transform.scale(player_img, (50, 38))
+
     def hide(self):
-        self.rect.center = (WIDTH / 2, HEIGHT + 300)
+        self.rect.center = (settings['WIDTH'] / 2, settings['HEIGHT'] + 300)
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -81,7 +96,7 @@ class Mob(pygame.sprite.Sprite):
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width * 0.65 / 2)
-        self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+        self.rect.x = random.randrange(0, settings['WIDTH'] - self.rect.width)
         self.rect.y = random.randrange(-150, 100)
         self.speedy = random.randrange(1, 10)
         self.speedx = random.randint(-3, 3)
@@ -95,8 +110,8 @@ class Mob(pygame.sprite.Sprite):
         self.rotate()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if self.rect.top > HEIGHT + 20 or self.rect.right < 0 or self.rect.left > WIDTH:
-            self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+        if self.rect.top > settings['HEIGHT'] + 20 or self.rect.right < 0 or self.rect.left > settings['WIDTH']:
+            self.rect.x = random.randrange(0, settings['WIDTH'] - self.rect.width)
             self.rect.y = random.randrange(-150, 100)
             self.speedy = random.randrange(1, 10)
             self.speedx = random.randint(-3, 3)
@@ -146,7 +161,7 @@ class Powerup(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed
-        if self.rect.top > HEIGHT:
+        if self.rect.top > settings['HEIGHT']:
             self.kill()
 
 def show_go_screen():
@@ -157,10 +172,10 @@ def show_go_screen():
         with open('highscore', 'w') as fout:
             print(highscore, file=fout)
     screen.blit(background, background_rect)
-    draw_text('Используйте стрелки для перемещения, пробел для стрельбы', screen, WIDTH / 2, HEIGHT / 2, 12)
-    draw_text('Для начала нажмите любую клавишу', screen, WIDTH / 2, HEIGHT * 3 / 5, 18)
-    draw_text('Очки: ' + str(score), screen, WIDTH / 2, 50, 18)
-    draw_text('Рекорд: ' + str(highscore), screen, WIDTH / 2, 74, 18)
+    draw_text('Используйте стрелки для перемещения, пробел для стрельбы', screen, settings['WIDTH'] / 2, settings['HEIGHT'] / 2, 12)
+    draw_text('Для начала нажмите любую клавишу', screen, settings['WIDTH'] / 2, settings['HEIGHT'] * 3 / 5, 18)
+    draw_text('Очки: ' + str(score), screen, settings['WIDTH'] / 2, 50, 18)
+    draw_text('Рекорд: ' + str(highscore), screen, settings['WIDTH'] / 2, 74, 18)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -188,19 +203,25 @@ def draw_hp(surf, x, y, hp):
     pygame.draw.rect(surf, (0, 255, 0), filled_rect)
     pygame.draw.rect(surf, (255, 255, 255), outlined_rect, 2)
 
-WIDTH = 400
-HEIGHT = 600
-FPS = 60
-POWERUP_TIME = 3000
+def init():
+    with open('config.txt') as fin:
+        settings = {}
+        for line in fin.readlines():
+            key, value = line.split()
+            settings[key] = int(value)
+    return settings
+
+settings = init()
 
 pygame.init()
 pygame.mixer.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+screen = pygame.display.set_mode((settings['WIDTH'], settings['HEIGHT']), 0, 32)
 pygame.display.set_caption('Аркадный шутер')
 clock = pygame.time.Clock()
 img_dir = os.path.join(os.path.dirname(__file__), 'img')
 snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
 player_img = pygame.image.load(os.path.join(img_dir, 'playerShip.png')).convert_alpha()
+player_img_shield = pygame.image.load(os.path.join(img_dir, 'playerShipShield.png')).convert_alpha()
 bullet_img = pygame.image.load(os.path.join(img_dir, 'laserBlue16.png')).convert_alpha()
 background = pygame.image.load(os.path.join(img_dir, 'starfield.png')).convert()
 background_rect = background.get_rect()
@@ -255,7 +276,7 @@ while game_on:
         for i in range(8):
             m = Mob()
 
-    clock.tick(FPS)
+    clock.tick(settings['FPS'])
     # события
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -277,7 +298,8 @@ while game_on:
     # встреча игрока и метеора
     hits = pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_circle)
     for hit in hits:
-        player.hp -= hit.radius
+        if player.shields == 0:
+            player.hp -= hit.radius
         expl = Explosion(hit.rect.center, 'sm')
         all_sprites.add(expl)
         Mob()
@@ -302,11 +324,13 @@ while game_on:
                 player.hp = 100
         elif hit.type == 'doublegun':
             player.powerup()
+        elif hit.type == 'shield':
+            player.shieldup()
 
     # рендеринг
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
-    draw_text(str(score), screen, WIDTH / 2, 10, 18)
+    draw_text(str(score), screen, settings['WIDTH'] / 2, 10, 18)
     draw_hp(screen, 5, 5, player.hp)
     pygame.display.flip()
 pygame.quit()
