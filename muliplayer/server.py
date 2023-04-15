@@ -13,11 +13,11 @@ class User:
         self.score = 0
     
     def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__)
 
 SIZE = 20
 
-users = []
+users = {}
 
 
 @app.route('/')
@@ -28,9 +28,15 @@ def hello():
 def register():
     username = request.args.get('name')
     user = User(username)
-    users.append(user)
+    users[username] = user
     print(username)
-    print(user.toJSON())
     return user.toJSON()
+
+@app.route('/status')
+def status():
+    ans = {}
+    for user in users:
+        ans[user] = users[user].toJSON()
+    return ans
 
 app.run(debug=True)

@@ -44,6 +44,7 @@ pygame.display.set_caption('Сеть')
 clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
+users = {}
 
 user_d = json.loads(res.text)
 print(user_d)
@@ -55,6 +56,7 @@ user = User(
     user_d['score']
     )
 all_sprites.add(user)
+users[username] = user
 
 gameOn = True
 while gameOn:
@@ -64,6 +66,17 @@ while gameOn:
         if event.type == pygame.QUIT:
             gameOn = False
     # обновление
+    status = json.loads(requests.get('http://127.0.0.1:5000/status').text)
+    for name in status:
+        d = json.loads(status[name])
+        if not name in users:
+            newUser = User(d['name'], d['color'], d['x'], d['y'], d['score'])
+            users[name] = newUser
+            all_sprites.add(newUser)
+        else:
+            users[name].x = d['x']
+            users[name].y = d['y']
+            users[name].score = d['score']
     all_sprites.update()
     # рендеринг
     all_sprites.draw(screen)
