@@ -15,7 +15,8 @@ class User(pygame.sprite.Sprite):
         self.rect.x = self.x * SQUARE_SIZE
         self.rect.y = self.y * SQUARE_SIZE
     def update(self):
-        pass
+        self.rect.x = self.x * SQUARE_SIZE
+        self.rect.y = self.y * SQUARE_SIZE
 
 FPS = 10
 SIZE = 20
@@ -65,6 +66,22 @@ while gameOn:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             gameOn = False
+        elif event.type == pygame.KEYDOWN:
+            direction = False
+            if event.key == pygame.K_UP:
+                direction = 'up'
+            elif event.key == pygame.K_RIGHT:
+                direction = 'right'
+            elif event.key == pygame.K_DOWN:
+                direction = 'down'
+            elif event.key == pygame.K_LEFT:
+                direction = 'left'
+            if direction:
+                params = {
+                    'username': username,
+                    'direction': direction
+                }
+                requests.get('http://127.0.0.1:5000/move', params=params)
     # обновление
     status = json.loads(requests.get('http://127.0.0.1:5000/status').text)
     for name in status:
